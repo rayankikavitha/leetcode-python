@@ -1,0 +1,90 @@
+def findComplement(num):
+    """
+    :type num: int
+    :rtype: int
+    """
+    i = 1
+    while i <= num:
+        i = i << 1
+        print i
+    return (i - 1) ^ num
+
+print findComplement(5)
+
+
+def multiplier(x):
+    for i in range(x):
+        print i
+        yield lambda x: i*x
+
+print multiplier(4)
+
+
+def testgen(index):
+  weekdays = ['sun','mon','tue','wed','thu','fri','sat']
+  yield weekdays[index]
+  yield weekdays[index+1]
+
+day = testgen(0)
+print next(day), next(day)
+
+weekdays = ['sun','mon','tue','wed','thu','fri','sun','mon','mon']
+print [[x,weekdays.count(x)] for x in set(weekdays)]
+
+class Solution(object):
+    def addStrings(self, num1, num2):
+        """
+        :type num1: str
+        :type num2: str
+        :rtype: str
+        """
+        carry = 0
+        s = []
+        l1, l2 = len(num1), len(num2)
+        if l1 < l2:
+            num1 = '0' * (l2 - l1) + num1
+            print num1
+        if l2 < l1:
+            num2 = '0' * (l1 - l2) + num2
+            print num2
+
+        for i in range(len(num1)-1, -1, -1):
+            print i
+            v1 = int(num1[i])
+            v2 = int(num2[i])
+            t = v1 + v2 + carry
+            print v1, v2, t
+            s.append(str(t % 10))
+            carry = t / 10
+
+        if carry > 0:
+            s.append(str(carry))
+        return ''.join(s[::-1])
+
+if __name__ == '__main__':
+    s = Solution()
+    print s.addStrings('123','456')
+
+
+# 24,36
+# 36 % 24, 24  = 12, 24
+# 24 % 12, 12 = 0 , so return 12
+
+def gcd(a, b):
+    # base case
+    if a == 0 or b == 0:
+        return 0
+    # a > b swap, so they can adhere to below condition.
+    if a > b:
+        a, b = b, a
+    # always start with condition b > a
+    if b % a == 0:
+        return a
+    else:
+        return gcd(b%a, a)
+
+print gcd(27,72)
+print gcd(24,36)
+print gcd(27, 0)
+
+
