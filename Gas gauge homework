@@ -1,0 +1,158 @@
+import os
+import pandas as pd
+
+def deleteContent(fName):
+    """
+    :param fName: File name that needs to have contents erased
+    :return: None
+    """
+    with open(fName, "w"):
+        pass
+
+def combine_log_files(infile_name, outfile_name ):
+    """
+    :param name: name of the log file that needs to be collected.
+    :return: combined file of all log files
+    """
+    try:
+        deleteContent(outfile_name)
+        outfile = open(outfile_name, 'a')
+    except:
+        outfile = open(outfile_name,'w')
+
+    for root, dirs, files in os.walk(os.getcwd()):
+        if len(dirs) == 0 and infile_name in files:
+            file_path = os.path.join(root,infile_name)
+            #print "valid file_path = ", file_path
+            with open(file_path, 'r') as infile:
+                for line in infile.readlines():
+                    outfile.writelines(line)
+            infile.close()
+
+    outfile.close()
+
+
+def sort_file(infile_name):
+    """
+    :param infile_name: File that needs to be sorted
+    :return: sorted data frame
+    """
+    df = pd.read_csv(infile_name, sep=" ", header=0)
+    df['CuratedTime'] = pd.to_datetime(df['Time'])
+    df.sort_values(by='CuratedTime', inplace=True)
+    return df
+
+
+def add_header(filename, header_txt):
+    """
+    :param filename: Name of the file that needs to be converted or processed
+    :param header_list: names of the colummns
+    :return: csv file with comma separated and header
+    """
+    with open(filename, "r+") as f:
+        first_line = f.readline()
+        if first_line != header_txt:
+            lines = f.readlines()
+            f.seek(0)
+            f.write(header_txt)
+            f.write(first_line)
+            f.writelines(lines)
+
+def find_statistics_for_fruit(fName):
+    combine_log_files('fruit.log','total_fruit.log')
+    add_header('total_fruit.log', "Month Date Time Delivery Location FruitName Channel Total\n")
+    df = sort_file('total_fruit.log')
+    max_val, min_val, mean_val = None, None, None
+    # print total values for kiwi
+    fruit_orders = df[df['FruitName'] == str(fName)]['Total']
+    if not fruit_orders.empty:
+        max_val = fruit_orders.max()
+        # 14070
+        min_val =  fruit_orders.min()
+        # -1
+        mean_val = round(fruit_orders.mean(),2)
+        # 1040.8785124  # rounded to 1040.88
+
+        print "max value = {max}".format(max=max_val)
+        print "min value = {min}".format(min=min_val)
+        print "mean value = {mean} ".format(mean=mean_val)
+    return max_val,min_val,mean_val
+
+
+
+import unittest
+
+class TestFruitStatistics(unittest.TestCase):
+    """
+    There should be 1 test case in one function. Since, I am not computing min, max, mean separately,
+    calling function for each value is unnecessary. So, I am calling function once to test all 3 values.
+
+    """
+
+
+    def test_kiwi(self):
+        kiwi_results = find_statistics_for_fruit('Kiwi')
+        self.assertEqual(kiwi_results[0], 14070, "Kiwi max value test case failed")
+        self.assertEqual(kiwi_results[1], -1, "Kiwi min value test case failed")
+        self.assertEqual(kiwi_results[2], 1040.88, "Kiwi mean value test case failed")
+
+    def test_lemon(self):
+        lemon_results = find_statistics_for_fruit('Lemon')
+        self.assertEqual(lemon_results[0], 0, "Lemon max value test case failed")
+        self.assertEqual(lemon_results[1], 0, "Lemon min value test case failed")
+        self.assertEqual(lemon_results[2], 0.0, "Lemon min value test case failed")
+
+    def test_unknown(self):
+        unknown_results = find_statistics_for_fruit('Unknown')
+        self.assertEqual(unknown_results[0], None, "Unknown fruit max value test case failed")
+
+    def test_orange(self):
+        orange_results = find_statistics_for_fruit('Orange')
+        self.assertEqual(orange_results[0], 226, "Orange max value test case failed")
+        self.assertEqual(orange_results[1], -1124, "Orange min value test case failed")
+        self.assertEqual(orange_results[2], -292.41, "Orange min value test case failed")
+
+    def test_onion(self):
+        onion_results = find_statistics_for_fruit('Onion')
+        self.assertEqual(onion_results[0], -2, "Onion max value test case failed")
+        self.assertEqual(onion_results[1], -3, "Onion min value test case failed")
+        self.assertEqual(onion_results[2], -2.03, "Onion min value test case failed")
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+
+"""
+******** OUTPUT ***********
+
+/Users/kavitharayanki/MapsDisplayEval/venv/bin/python /Users/kavitharayanki/PycharmProjects/HomeWork/GasGauge_homework_solution.py
+max value = 14070
+.min value = -1
+mean value = 1040.88
+.max value = 0
+min value = 0
+mean value = 0.0
+max value = -2
+min value = -3
+mean value = -2.03
+.max value = 226
+min value = -1124
+mean value = -292.41
+..
+----------------------------------------------------------------------
+Ran 5 tests in 13.557s
+
+OK
+
+Process finished with exit code 0
+
+
+
+"""
+
+
+
+
+
+
