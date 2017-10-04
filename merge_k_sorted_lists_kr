@@ -1,0 +1,53 @@
+import heapq as hq
+l1=[3,5,7,8]
+l2=[4,5,9]
+l3=[6,6,6,10]
+l4=[5,9]
+l = [
+[3,5,7,8],
+[4,5,9],
+[6,6,6,10],
+[5,9],
+[1,2,3,4]
+]
+result=[]
+max_length= max(map(len, [each for each in l]))
+print max_length
+
+h=[]
+counter=0
+result = []
+# enumerate first value
+"""
+while counter < max_length:
+    for i,v in enumerate(l):
+        if v[counter]:
+            hq.heappush(h, (v[counter],i))
+        hq.heapify(h)
+        # remove the min value
+        min_tuple = hq.heappop(h)
+        result.append(min_tuple[0])
+        next = min_tuple[1]
+
+    counter += 1
+"""
+
+
+for i,v in enumerate(l):
+    hq.heappush(h,(v[0],i))
+print h
+hq.heapify(h)
+count = 1
+while count < max_length:
+    min_t = hq.heappop(h)
+    print min_t
+    result.append(min_t[0])
+    next = min_t[1]
+    if l[next][count]:
+        hq.heappush(h,(l[next][count],count))
+    hq.heapify(h)
+    count += 1
+
+print result
+
+
