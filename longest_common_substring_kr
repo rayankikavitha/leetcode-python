@@ -1,0 +1,31 @@
+str1 =  'abcdefg'
+str2 = 'gbcdmnfgh'
+# output = 'bcd'
+# https://www.youtube.com/watch?v=BysNXJHzCEs
+def longest_common_substring(str1, str2):
+    # Assume str1 in a row and use i for iteration
+    # Assume str2 as a column and use j for iteration
+    T = [[0 for i in range(len(str1)+1)] for j in range(len(str2)+1)]
+    print T
+    max = 0
+    pos = 0
+    for i in range(len(str1)):
+        for j in range( len(str2)):
+            if str1[i] == str2[j]:
+                T[i][j] = T[i-1][j-1] + 1
+                if max < T[i][j]:
+                    max = T[i][j]
+                    pos = i
+
+    # length of the common substring
+    print max
+    print pos
+    # actual common substring is
+    print str1[pos+1-max:pos+1]
+
+longest_common_substring(str1, str2)
+
+
+
+
+
