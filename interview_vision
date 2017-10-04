@@ -1,0 +1,143 @@
+"""
+KRAYANKI Test cases and logic to find largest circle among the clusters.
+"""
+image1 = [ (0.5,0.5,0.5), (1.5,1.5,1.1), (0.7,0.7,0.4), (4,4,0.7)]
+image2 = [ (1.5,1.5,1.3), (4,4,0.7)]
+image3 = [ (1,3,0.7), (2,3,0.4),(3,3,0.9)]
+test_case1 = [ (0.5,0.5,0.5), (1.5,1.5,1.1), (0.7,0.7,0.4), (4,4,0.7),(3.9,3.9,1), (6,6,4),(7,7,1)]
+test_case2 = [ (0.5,0.5,0.5), (1.5,1.5,1.1), (0.7,0.7,0.4), (4,4,0.7),(3.9,3.9,1)]
+test_case3 = [ (0.5,0.5,0.5), (1.5,1.5,1.1), (0.7,0.7,0.4), (4,4,0.7),(3.9,3.9,1),(10,10,3),(9,9,2),(8,8,1)]
+
+
+def find_path(c1,c2):
+    """
+    Find if there is a path between two circles. i.e if the circles are intersecting
+    one circle is with in other circle. he difference between (x1-x2) **2 + *(y1-y2)**2 <= (r1+r2)**2.
+    :param c1:  Circle 1
+    :param c2:  Circle 2
+    :return: True/False
+    """
+    return  (c1[0] - c2[0]) ** 2 + (c1[1] - c2[1]) ** 2 <= (c1[2] + c2[2]) ** 2
+
+
+#path = lambda (c1,c2):(c1[2]-c2[2])**2 <= (c1[0]-c2[0])**2 + (c1[1]-c2[1])**2 <= (c1[2]+c2[2])**2
+
+
+def find_clusters(sorted_image):
+    """
+    Identify clusters with in a given set of circles. circle is a tuple(x,y,r)
+    o(n*2).I could improve the performance by dictionary.
+    May be I could have improved by keeping track of largest radius visited in the clusters while looking for path.
+    :param sorted_image: sorted circles array
+    :return: group of clusters in an array
+    """
+    # Get combinations of every circle with every other circle. So, if there are 4 circles, we will have 12 combinations
+    combinations = [[x, y] for x in sorted_image for y in sorted_image if x != y ]
+    #print combinations
+    # Define dictionary to store circle as key, cluster id as value.
+    # This is useful to check if a circle is part of a cluster or not.
+    cluster_dict ={}
+    # used to create new cluster ids
+    counter=0
+
+    for each in combinations:
+        # they belong to the same cluster
+        if find_path(each[0],each[1]):
+            if each[0] in cluster_dict:
+                cluster_dict[each[1]]= cluster_dict[each[0]]
+            elif each[1] in cluster_dict:
+                cluster_dict[each[0]] = cluster_dict[each[1]]
+            else:
+                # create a new cluster
+                if each[0] not in cluster_dict and each[1] not in cluster_dict:
+                    counter+=1
+                    cluster_dict[each[0]]=counter
+                    cluster_dict[each[1]]=counter
+        else:
+            #start a new cluster, either one is already in one cluster and other in different clusters
+            # or they are all new together
+            # case when one is already in one cluster and other is not in the cluster
+            if each[0] in cluster_dict and each[1] not in cluster_dict:
+                counter += 1
+                cluster_dict[each[1]] = counter
+            elif each[1] in cluster_dict and each[0] not in cluster_dict:
+                counter += 1
+                cluster_dict[each[0]] = counter
+            # two different clusters
+            else:
+                if each[0] not in cluster_dict:
+                    counter+=1
+                    cluster_dict[each[0]] = counter
+                if each[1] not in cluster_dict:
+                    counter += 1
+                    cluster_dict[each[1]] = counter
+    #print cluster_dict
+    # {(1.5, 1.5, 1.1): 1, (0.5, 0.5, 0.5): 1, (0.7, 0.7, 0.4): 1, (4, 4, 0.7): 2}
+
+    # transpose dictionary by cluster id as key and  circles as values.
+    newdl = {}
+    for i,v in enumerate(cluster_dict):
+        newdl.setdefault(cluster_dict[v], []).append(v)
+    #print "newdl ="
+    #{1: [(1.5, 1.5, 1.1), (0.5, 0.5, 0.5), (0.7, 0.7, 0.4)], 2: [(4, 4, 0.7)]}
+    #print newdl.values()
+    # [[(1.5, 1.5, 1.1), (0.5, 0.5, 0.5), (0.7, 0.7, 0.4)], [(4, 4, 0.7)]]
+    # list of lists of clusters.
+    return newdl.values()
+
+
+
+
+
+def find_circle_with_largest_area(image):
+    """
+    Sort the circles by x, y co-ordinates, find the clusters and return the circle with largest area with in each cluster.
+    :param image: list of tuples with (x,y, radius)
+    :return: largest circle from each cluster
+    """
+
+    # sort images by x and y coordinates. sorting is not a necessary step, but it will help identify clusters quickly.
+    sorted_image = sorted(image, key= lambda tup: (tup[0],tup[1]))
+    clusters = find_clusters(sorted_image)
+
+    # get radius from each cluster
+    radius = [[v[2] for v in t] for t in clusters]
+    #print radius
+    #[1.1, 0.5, 0.4], [0.7]]
+
+    # identify maximum radius to identify largest circle
+    find_max = lambda x, y: x if x > y else y
+    max_circle = []
+    for each_radius in radius:
+        max_circle.append(reduce(find_max, each_radius))
+    #print max_circle
+    #[1.1, 0.7]
+
+
+    # zip to maximum radius to related cluster and find the matching circle with the maximum radius
+    zipped_result = zip(max_circle, clusters)
+    # print zipped_result
+    #[(1.1, [(1.5, 1.5, 1.1), (0.5, 0.5, 0.5), (0.7, 0.7, 0.4)]), (0.7, [(4, 4, 0.7)])]
+    # identify the circle by matching the largest radius with the circle tuple, as we are assuming radius is unique
+    identified_circle = [[ x for x in each[1] if x[2] == each[0]] for each in zipped_result]
+    # flatten the lists, remove extra nested list
+    flattened_final_list = [y for x in identified_circle for y in x]
+    return flattened_final_list
+    #[(1.5, 1.5, 1.1), (4, 4, 0.7)]
+
+
+
+print find_circle_with_largest_area(image1)
+# [(1.5, 1.5, 1.1), (4, 4, 0.7)]
+print find_circle_with_largest_area(image2)
+# [(1.5, 1.5, 1.3), (4, 4, 0.7)]
+print find_circle_with_largest_area(image3)
+# [(3, 3, 0.9)]
+print find_circle_with_largest_area(test_case1)
+# [(1.5, 1.5, 1.1), (6, 6, 4)]
+print find_circle_with_largest_area(test_case2)
+# [(1.5, 1.5, 1.1), (3.9, 3.9, 1)]
+print find_circle_with_largest_area(test_case3)
+# [(1.5, 1.5, 1.1), (3.9, 3.9, 1), (10, 10, 3)]
+
+
